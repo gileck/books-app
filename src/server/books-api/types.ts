@@ -1,4 +1,4 @@
-export interface BookAPIAdapter {
+  export interface BookAPIAdapter {
     searchBooks: (query: string, options?: SearchOptions) => Promise<BookSearchResult>;
     getBookById: (id: string) => Promise<Book | null>;
     getBooksByCategory: (category: string, options?: SearchOptions) => Promise<BookSearchResult>;

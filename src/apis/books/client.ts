@@ -7,7 +7,10 @@ import type { CacheResult } from "../../server/cache/types";
 export const searchBooks = async (request: BookSearchRequest): Promise<CacheResult<BookSearchResponse>> => {
   return apiClient.call<CacheResult<BookSearchResponse>, BookSearchRequest>(
     searchApiName,
-    request
+    request,
+    {
+      disableCache: true
+    }
   );
 };
 

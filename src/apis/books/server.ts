@@ -23,8 +23,8 @@ export const searchBooks = async (request: BookSearchRequest): Promise<BookSearc
       };
     }
 
-    // Use the books API to search for books
-    const bookApiAdapter = booksAPI('openlibrary');
+    // Use the books API to search for books with the specified provider
+    const bookApiAdapter = booksAPI(request.provider);
     const result = await bookApiAdapter.searchBooks(request.query, request.options);
 
     return {
@@ -52,8 +52,8 @@ export const getBookById = async (request: BookDetailsRequest): Promise<BookDeta
       };
     }
 
-    // Use the books API to get book by ID
-    const bookApiAdapter = booksAPI('openlibrary');
+    // Use the books API to get book by ID with the specified provider
+    const bookApiAdapter = booksAPI(request.provider);
     const book = await bookApiAdapter.getBookById(request.id);
 
     return {

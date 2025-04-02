@@ -9,7 +9,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export const navItems: NavItem[] = [ 
     { path: '/', label: 'Home', icon: <HomeIcon /> },
-    { path: '/book-search', label: 'Book Search', icon: <SearchIcon /> },
+    { path: '/book-search', label: 'Search', icon: <SearchIcon /> },
     { path: '/favorites', label: 'Favorites', icon: <FavoriteIcon /> },
     { path: '/settings', label: 'Settings', icon: <SettingsIcon /> },
   ];
@@ -18,7 +18,7 @@ export const navItems: NavItem[] = [
     { path: '/', label: 'Home', icon: <HomeIcon /> },
     { path: '/ai-chat', label: 'AI Chat', icon: <ChatIcon /> },
     { path: '/file-manager', label: 'Files', icon: <FolderIcon /> },
-    { path: '/book-search', label: 'Book Search', icon: <SearchIcon /> },
+    { path: '/book-search', label: 'Search', icon: <SearchIcon /> },
     { path: '/favorites', label: 'Favorites', icon: <FavoriteIcon /> },
     { path: '/settings', label: 'Settings', icon: <SettingsIcon /> },
     { path: '/ai-monitoring', label: 'AI Monitoring', icon: <InsightsIcon /> },
