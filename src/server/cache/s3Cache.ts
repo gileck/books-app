@@ -129,12 +129,14 @@ export const clearAllCache = async (): Promise<boolean> => {
   const { s3CachePrefix } = getCacheConfig();
   
   try {
+    // List all files in the cache folder
     const files = await listFiles(s3CachePrefix);
     
     // Delete all files in the cache folder
     for (const file of files) {
       if (file.key.endsWith('.json')) {
-        await deleteFile(file.key);
+        // Use the full path with the prefix for deletion
+        await deleteFile(`${s3CachePrefix}${file.key}`);
       }
     }
     

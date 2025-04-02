@@ -1,13 +1,36 @@
 import axios from 'axios';
 import { BookAPIAdapter, Book, BookSearchResult, SearchOptions } from '../types';
 
+// Define types for Open Library API responses
+interface OpenLibrarySearchItem {
+  key?: string;
+  title?: string;
+  author_name?: string[];
+  first_publish_year?: number;
+  description?: string;
+  number_of_pages_median?: number;
+  subject?: string[];
+  cover_i?: number;
+  language?: string[];
+}
+
+interface OpenLibraryDetailedItem {
+  title?: string;
+  authors?: Array<{ name: string }>;
+  first_publish_date?: string;
+  description?: { value: string } | string;
+  subjects?: string[];
+  covers?: number[];
+  language?: { key: string }[];
+}
+
 // Open Library API adapter
 export const createOpenLibraryAdapter = (): BookAPIAdapter => {
   const SEARCH_URL = 'https://openlibrary.org/search.json';
   const BOOK_URL = 'https://openlibrary.org/works';
 
   // Transform Open Library API response to our Book type
-  const transformBookData = (item: any): Book => {
+  const transformBookData = (item: OpenLibrarySearchItem): Book => {
     return {
       id: item.key?.replace('/works/', '') || '',
       title: item.title || 'Unknown Title',
@@ -27,93 +50,122 @@ export const createOpenLibraryAdapter = (): BookAPIAdapter => {
   };
 
   // Transform detailed book data
-  const transformDetailedBookData = (data: any, id: string): Book => {
+  const transformDetailedBookData = (data: OpenLibraryDetailedItem, id: string): Book => {
+    // Handle description which can be either a string or an object with a value property
+    let description = 'No description available';
+    if (typeof data.description === 'string') {
+      description = data.description;
+    } else if (data.description && typeof data.description === 'object' && 'value' in data.description) {
+      description = data.description.value;
+    }
+
     return {
       id,
       title: data.title || 'Unknown Title',
-      authors: data.authors?.map((author: any) => author.name) || ['Unknown Author'],
+      authors: data.authors?.map((author) => author.name) || ['Unknown Author'],
       publishedDate: data.first_publish_date || 'Unknown',
-      description: data.description?.value || data.description || 'No description available',
+      description,
       pageCount: 0, // Open Library doesn't provide page count in the works API
       categories: data.subjects || [],
       imageLinks: {
         thumbnail: data.covers?.[0] ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-M.jpg` : '',
         smallThumbnail: data.covers?.[0] ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-S.jpg` : '',
       },
-      language: data.original_language?.key?.replace('/languages/', '') || 'en',
+      language: (data.language && data.language[0]?.key?.replace('/languages/', '')) || 'en',
       previewLink: `https://openlibrary.org/works/${id}`,
       infoLink: `https://openlibrary.org/works/${id}`,
     };
   };
 
-  // Search books by query
-  const searchBooks = async (query: string, options?: SearchOptions): Promise<BookSearchResult> => {
-    try {
-      const params = {
-        q: query,
-        offset: options?.startIndex || 0,
-        limit: options?.maxResults || 10,
-        language: options?.langRestrict,
-      };
-
-      const response = await axios.get(SEARCH_URL, { params });
-      const { docs = [], numFound = 0 } = response.data;
-
-      return {
-        books: docs.map(transformBookData),
-        totalItems: numFound,
-      };
-    } catch (error) {
-      console.error('Error searching books:', error);
-      return {
-        books: [],
-        totalItems: 0,
-        error: 'Error searching books',
-      };
-    }
-  };
-
-  // Get book by ID
-  const getBookById = async (id: string): Promise<Book | null> => {
-    try {
-      const response = await axios.get(`${BOOK_URL}/${id}.json`);
-      return transformDetailedBookData(response.data, id);
-    } catch (error) {
-      console.error('Error fetching book by ID:', error);
-      return null;
-    }
-  };
-
-  // Get books by category
-  const getBooksByCategory = async (category: string, options?: SearchOptions): Promise<BookSearchResult> => {
-    try {
-      const params = {
-        q: `subject:${category}`,
-        offset: options?.startIndex || 0,
-        limit: options?.maxResults || 10,
-        language: options?.langRestrict,
-      };
-
-      const response = await axios.get(SEARCH_URL, { params });
-      const { docs = [], numFound = 0 } = response.data;
-
-      return {
-        books: docs.map(transformBookData),
-        totalItems: numFound,
-      };
-    } catch (error) {
-      console.error('Error getting books by category:', error);
-      return {
-        books: [],
-        totalItems: 0,
-        error: 'Error getting books by category',
-      };
-    }
-  };
-
   return {
-    searchBooks,
-    getBookById,
-    getBooksByCategory,
+    // Search books by query
+    searchBooks: async (query: string, options: SearchOptions = {}): Promise<BookSearchResult> => {
+      try {
+        const { startIndex = 0, maxResults = 10 } = options;
+
+        const response = await axios.get(SEARCH_URL, {
+          params: {
+            q: query,
+            offset: startIndex,
+            limit: maxResults,
+            language: options.langRestrict,
+          },
+        });
+
+        if (!response.data || !response.data.docs) {
+          return {
+            books: [],
+            totalItems: 0,
+          };
+        }
+
+        const books = response.data.docs.map(transformBookData);
+
+        return {
+          books,
+          totalItems: response.data.numFound || books.length,
+        };
+      } catch (error) {
+        console.error('Error searching books:', error);
+        return {
+          books: [],
+          totalItems: 0,
+          error: error instanceof Error ? error.message : 'An error occurred while searching books',
+        };
+      }
+    },
+
+    // Get book by ID
+    getBookById: async (id: string): Promise<Book | null> => {
+      try {
+        const response = await axios.get(`${BOOK_URL}/${id}.json`);
+
+        if (!response.data) {
+          return null;
+        }
+
+        return transformDetailedBookData(response.data, id);
+      } catch (error) {
+        console.error('Error getting book by ID:', error);
+        return null;
+      }
+    },
+
+    // Get books by category
+    getBooksByCategory: async (category: string, options: SearchOptions = {}): Promise<BookSearchResult> => {
+      try {
+        const { startIndex = 0, maxResults = 10 } = options;
+
+        const response = await axios.get(SEARCH_URL, {
+          params: {
+            q: `subject:${category}`,
+            offset: startIndex,
+            limit: maxResults,
+            language: options.langRestrict,
+          },
+        });
+
+        if (!response.data || !response.data.docs) {
+          return {
+            books: [],
+            totalItems: 0,
+          };
+        }
+
+        const books = response.data.docs.map(transformBookData);
+
+        return {
+          books,
+          totalItems: response.data.numFound || books.length,
+        };
+      } catch (error) {
+        console.error('Error getting books by category:', error);
+        return {
+          books: [],
+          totalItems: 0,
+          error: error instanceof Error ? error.message : 'An error occurred while getting books by category',
+        };
+      }
+    },
   };
 };

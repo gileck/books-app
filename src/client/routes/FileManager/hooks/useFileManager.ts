@@ -66,7 +66,14 @@ export const useFileManager = () => {
 
   // Handle navigation to a folder
   const handleNavigateToFolder = useCallback((prefix: string, folderName: string) => {
-    const newPrefix = `${prefix}${folderName}/`;
+    // Ensure we don't have double slashes by normalizing the path
+    // Remove any leading slash first, then ensure there's a trailing slash
+    console.log({
+      prefix,
+      folderName,
+    });
+    
+    const newPrefix = `${prefix}${folderName}`;
     setCurrentPrefix(newPrefix);
     
     // Update breadcrumbs
@@ -88,7 +95,8 @@ export const useFileManager = () => {
     } else {
       // Navigate to specific breadcrumb
       const newBreadcrumbs = breadcrumbs.slice(0, index + 1);
-      const newPrefix = newBreadcrumbs.reduce((acc, crumb) => `${acc}${crumb}/`, '');
+      // Ensure no leading slash and proper trailing slashes
+      const newPrefix = newBreadcrumbs.reduce((acc, crumb) => `${acc}${crumb}`, '');
       
       setCurrentPrefix(newPrefix);
       setBreadcrumbs(newBreadcrumbs);
@@ -148,9 +156,13 @@ export const useFileManager = () => {
     setLoadingFileContent(true);
     
     try {
-      const filePath = file.key;
+      // Use the fullPath property to get the file path and name
+      const fullPath = file.fullPath || file.key;
+      const lastSlashIndex = fullPath.lastIndexOf('/');
+      const fileName = lastSlashIndex >= 0 ? fullPath.substring(lastSlashIndex + 1) : fullPath;
+      const folderPath = lastSlashIndex >= 0 ? fullPath.substring(0, lastSlashIndex) : '';
       
-      const response = await getFile(filePath);
+      const response = await getFile(fileName, folderPath);
       
       setEditFileContent(response.data.content || '');
       setShowEditFileDialog(true);
@@ -192,8 +204,13 @@ export const useFileManager = () => {
     setLoadingFileContent(true);
     
     try {
-      const filePath = file.key;
-      const response = await getFile(filePath);
+      // Use the fullPath property to get the file path and name
+      const fullPath = file.fullPath || file.key;
+      const lastSlashIndex = fullPath.lastIndexOf('/');
+      const fileName = lastSlashIndex >= 0 ? fullPath.substring(lastSlashIndex + 1) : fullPath;
+      const folderPath = lastSlashIndex >= 0 ? fullPath.substring(0, lastSlashIndex) : '';
+      
+      const response = await getFile(fileName, folderPath);
       const content = response.data.content || '';
       
       setViewFileContent(content);

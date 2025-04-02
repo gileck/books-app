@@ -33,11 +33,13 @@ export const listFiles = async (
 };
 
 export const getFile = async (
-  fileName: string
+  fileName: string,
+  filePath?: string
 ): Promise<CacheResult<GetFileResponse>> => {
   return manageFiles({
     action: 'getFile',
-    fileName
+    fileName,
+    filePath
   }) as Promise<CacheResult<GetFileResponse>>;
 };
 

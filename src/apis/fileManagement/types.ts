@@ -6,6 +6,7 @@ export type FileInfo = {
   lastModified: Date;
   isFolder: boolean;
   fileCount?: number;
+  fullPath: string;
 };
 
 // Base request type
@@ -23,6 +24,7 @@ export type ListFilesRequest = FileManagementBaseRequest & {
 export type GetFileRequest = FileManagementBaseRequest & {
   action: 'getFile';
   fileName: string;
+  filePath?: string; // Optional path to the file
 };
 
 // Write file request

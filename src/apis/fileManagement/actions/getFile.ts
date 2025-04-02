@@ -10,7 +10,12 @@ export async function getFile(request: GetFileRequest): Promise<GetFileResponse>
   }
   
   try {
-    const content = await getFileAsString(request.fileName);
+    // Use filePath + fileName if filePath is provided, otherwise just fileName
+    const fullPath = request.filePath 
+      ? `${request.filePath}/${request.fileName}` 
+      : request.fileName;
+    
+    const content = await getFileAsString(fullPath);
     return { 
       content,
       contentType: request.fileName.endsWith('.json') ? 'application/json' : 

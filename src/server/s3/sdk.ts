@@ -13,7 +13,8 @@ import { appConfig } from '../../app.config';
 
 const AWS_BUCKET_NAME = "app-template-1252343"
 // Constants
-const APP_FOLDER_PREFIX = appConfig.appName || '';
+const APP_FOLDER_PREFIX = appConfig.appName ? `${appConfig.appName}/` : '';
+// const APP_FOLDER_PREFIX = ''
 
 // S3 Configuration
 export interface S3Config {
@@ -36,22 +37,6 @@ const defaultConfig: S3Config = {
       }
     : undefined,
 };
-
-// Types
-export interface S3File {
-  key: string;
-  size: number;
-  lastModified: Date;
-  url?: string;
-  isFolder?: boolean;
-  fileCount?: number;
-}
-
-export interface S3UploadParams {
-  content: string | Buffer;
-  fileName: string;
-  contentType?: string;
-}
 
 // Create S3 client with configuration
 export const createS3Client = (config: S3Config = defaultConfig): S3Client => {
@@ -101,7 +86,7 @@ export const uploadFile = async (
 
   await client.send(command);
   // Return the key without the APP_FOLDER_PREFIX for consistency
-  return fileName.replace(APP_FOLDER_PREFIX, '');
+  return fileName.substring(APP_FOLDER_PREFIX.length);
 };
 
 // Get a file from S3
@@ -171,7 +156,7 @@ export const listFiles = async (
       if (item.Key === fullPrefix) continue;
       
       // Get the relative path from the current prefix
-      const relativePath = item.Key.replace(fullPrefix, '');
+      const relativePath = item.Key.substring(fullPrefix.length);
       
       // Skip empty paths
       if (!relativePath) continue;
@@ -225,7 +210,9 @@ export const listFiles = async (
   if (response.CommonPrefixes) {
     for (const prefix of response.CommonPrefixes) {
       if (prefix.Prefix) {
-        const folderKey = prefix.Prefix.replace(APP_FOLDER_PREFIX, '');
+        // Get the folder key without the app prefix
+        const folderKey = prefix.Prefix.substring(fullPrefix.length);
+        
         // Extract folder name from the path
         const folderName = folderKey.split('/').filter(p => p).pop() || folderKey;
         
@@ -239,7 +226,8 @@ export const listFiles = async (
           size: folderSizes[simpleFolderName] || 0,
           lastModified: new Date(),
           isFolder: true,
-          fileCount: folderCounts[simpleFolderName] || 0
+          fileCount: folderCounts[simpleFolderName] || 0,
+          fullPath: folderKey
         });
       }
     }
@@ -255,12 +243,13 @@ export const listFiles = async (
       const isFolder = item.Key?.endsWith('/') || false;
       
       // If it's a folder marker and we already added it via CommonPrefixes, skip it
-      if (isFolder && result.some(f => f.isFolder && f.key === item.Key?.replace(APP_FOLDER_PREFIX, ''))) {
+      if (isFolder && result.some(f => f.isFolder && f.key === item.Key?.substring(fullPrefix.length))) {
         continue;
       }
       
       if (item.Key) {
-        const key = item.Key.replace(APP_FOLDER_PREFIX, '');
+        // Get the key without the app prefix
+        const key = item.Key.substring(fullPrefix.length);
         
         // For folder markers that weren't in CommonPrefixes
         if (isFolder) {
@@ -275,7 +264,8 @@ export const listFiles = async (
             size: folderSizes[simpleFolderName] || 0,
             lastModified: item.LastModified || new Date(),
             isFolder: true,
-            fileCount: folderCounts[simpleFolderName] || 0
+            fileCount: folderCounts[simpleFolderName] || 0,
+            fullPath: item.Key
           });
         } else {
           // Regular files
@@ -283,7 +273,8 @@ export const listFiles = async (
             key,
             size: item.Size || 0,
             lastModified: item.LastModified || new Date(),
-            isFolder: false
+            isFolder: false,
+            fullPath: item.Key
           });
         }
       }
@@ -355,3 +346,20 @@ export const listFilesWithUrls = async (
   
   return filesWithUrls;
 };
+
+// Types
+export interface S3File {
+  key: string;
+  size: number;
+  lastModified: Date;
+  url?: string;
+  isFolder?: boolean;
+  fileCount?: number;
+  fullPath: string;
+}
+
+export interface S3UploadParams {
+  content: string | Buffer;
+  fileName: string;
+  contentType?: string;
+}

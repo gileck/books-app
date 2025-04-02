@@ -60,6 +60,13 @@ const parseQueryParams = (): QueryParams => {
   return queryParams;
 };
 
+// Helper function to get pathname without query parameters
+const getPathname = (path: string): string => {
+  // Extract just the pathname part, removing any query string
+  const queryIndex = path.indexOf('?');
+  return queryIndex >= 0 ? path.substring(0, queryIndex) : path;
+};
+
 // Router provider component
 export const RouterProvider = ({ children, routes }: { 
   children?: (Component: React.ComponentType) => React.ReactNode, 
@@ -111,8 +118,8 @@ export const RouterProvider = ({ children, routes }: {
       window.history.pushState(null, '', path);
     }
     
-    // Update current path state
-    setCurrentPath(path);
+    // Update current path state (only the pathname part)
+    setCurrentPath(getPathname(path));
     
     // Update query params
     setQueryParams(parseQueryParams());
@@ -121,26 +128,32 @@ export const RouterProvider = ({ children, routes }: {
   // Listen for popstate events (browser back/forward)
   useEffect(() => {
     const handlePopState = () => {
+      // Update current path when user navigates with browser buttons
       setCurrentPath(window.location.pathname);
+      // Also update query parameters
       setQueryParams(parseQueryParams());
     };
-
+    
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Provide router context and render current route
-  console.log('currentPath', currentPath);
-  
-  // Provide router context and render current route
+  // Provide the router context
+  const routerContext: RouterContextType = {
+    currentPath,
+    routeParams,
+    queryParams,
+    navigate,
+  };
+
   return (
-    <RouterContext.Provider value={{ currentPath, routeParams, queryParams, navigate }}>
+    <RouterContext.Provider value={routerContext}>
       {children ? children(RouteComponent) : <RouteComponent />}
     </RouterContext.Provider>
   );
 };
 
-// Route mapping utility
+// Helper function to create routes
 export const createRoutes = (routeComponents: Record<string, React.ComponentType>) => {
   return routeComponents;
 };

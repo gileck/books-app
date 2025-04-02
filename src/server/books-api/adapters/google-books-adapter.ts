@@ -1,12 +1,34 @@
 import axios from 'axios';
 import { BookAPIAdapter, Book, BookSearchResult, SearchOptions } from '../types';
 
+// Define types for Google Books API responses
+interface GoogleBookVolumeInfo {
+  title?: string;
+  authors?: string[];
+  publishedDate?: string;
+  description?: string;
+  pageCount?: number;
+  categories?: string[];
+  imageLinks?: {
+    thumbnail?: string;
+    smallThumbnail?: string;
+  };
+  language?: string;
+  previewLink?: string;
+  infoLink?: string;
+}
+
+interface GoogleBookItem {
+  id: string;
+  volumeInfo: GoogleBookVolumeInfo;
+}
+
 // Google Books API adapter
 export const createGoogleBooksAdapter = (): BookAPIAdapter => {
   const BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
 
   // Transform Google Books API response to our Book type
-  const transformBookData = (item: any): Book => {
+  const transformBookData = (item: GoogleBookItem): Book => {
     const volumeInfo = item.volumeInfo || {};
 
     return {

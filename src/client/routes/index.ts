@@ -4,6 +4,9 @@ import { AIChat } from './AIChat';
 import { Settings } from './Settings';
 import { FileManager } from './FileManager';
 import { AIMonitoring } from './AIMonitoring';
+import BookSearch from './BookSearch/BookSearch';
+import { BookDetails } from './BookDetails/BookDetails';
+import { Favorites } from './Favorites';
 import { createRoutes } from '../router';
 
 // Define routes
@@ -13,5 +16,8 @@ export const routes = createRoutes({
   '/settings': Settings,
   '/file-manager': FileManager,
   '/ai-monitoring': AIMonitoring,
+  '/book-search': BookSearch,
+  '/book/:id': BookDetails,
+  '/favorites': Favorites,
   '/not-found': NotFound,
 });

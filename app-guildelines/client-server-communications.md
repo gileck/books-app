@@ -135,6 +135,88 @@ This project uses a simplified client-server communication pattern with a single
      };
      ```
 
+## Multiple API Routes Under the Same Namespace
+
+When a domain needs to expose multiple API routes (e.g., search and details), follow these guidelines:
+
+1. **Define a Base Namespace in index.ts**:
+   ```typescript
+   // src/apis/books/index.ts
+   export * from './types';
+   export const name = "books"; // Base namespace
+   ```
+
+2. **Export Full API Names from server.ts**:
+   - Define and export the full API endpoint names using the base namespace
+   - Create separate handler functions for each endpoint
+   - Example:
+   ```typescript
+   // src/apis/books/server.ts
+   import { name } from './index';
+   
+   // Full API endpoint names
+   export const searchApiName = `${name}/search`;
+   export const detailsApiName = `${name}/details`;
+   
+   // Export the name for backwards compatibility
+   export { name };
+   
+   // Search books endpoint
+   export const searchBooks = async (request: BookSearchRequest): Promise<BookSearchResponse> => {
+     // Implementation...
+   };
+   
+   // Get book by ID endpoint
+   export const getBookById = async (request: BookDetailsRequest): Promise<BookDetailsResponse> => {
+     // Implementation...
+   };
+   ```
+
+3. **Import Full API Names in client.ts**:
+   ```typescript
+   // src/apis/books/client.ts
+   import { searchApiName, detailsApiName } from "./server";
+   
+   // Client function to call the book search API
+   export const searchBooks = async (request: BookSearchRequest): Promise<CacheResult<BookSearchResponse>> => {
+     return apiClient.call<CacheResult<BookSearchResponse>, BookSearchRequest>(
+       searchApiName,
+       request
+     );
+   };
+   
+   // Client function to call the book details API
+   export const getBookById = async (request: BookDetailsRequest): Promise<CacheResult<BookDetailsResponse>> => {
+     return apiClient.call<CacheResult<BookDetailsResponse>, BookDetailsRequest>(
+       detailsApiName,
+       request
+     );
+   };
+   ```
+
+4. **Register Multiple Endpoints in apis.ts**:
+   ```typescript
+   // src/apis/apis.ts
+   import * as books from "./books/server";
+   
+   export const apiHandlers: ApiHandlers = {
+     // Other API handlers...
+     [books.searchApiName]: { 
+       process: (params: unknown) => books.searchBooks(params as BookSearchRequest) 
+     },
+     [books.detailsApiName]: { 
+       process: (params: unknown) => books.getBookById(params as BookDetailsRequest) 
+     },
+   };
+   ```
+
+This approach provides several benefits:
+- Clear organization of related API endpoints under a common namespace
+- Explicit and self-documenting API names
+- Type safety for each endpoint's request and response
+- Separation of concerns with dedicated handler functions
+- Consistent client-side access pattern
+
 ## Using the API from Client Components
 
 ```typescript
@@ -199,7 +281,6 @@ const handleSubmit = async () => {
    - The client.ts function MUST use the exact same parameter types as server.ts
    - The return type in client.ts should be CacheResult<ResponseType>
    - Never use `any` as a type
-   - Never duplicate types - always import from the shared types.ts file
 
 7. **Separation of Concerns**:
    - **NEVER import server.ts in client-side code**

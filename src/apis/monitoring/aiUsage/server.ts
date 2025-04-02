@@ -16,6 +16,10 @@ import {
 // Export the API name
 export const name = "monitoring/ai-usage";
 
+// Full API endpoint names
+export const allUsageApiName = `${name}/all`;
+export const summaryApiName = `${name}/summary`;
+
 /**
  * Process function for the AI usage monitoring API
  * Handles both "all" and "summary" endpoints

@@ -11,7 +11,8 @@ export async function listFiles(request: ListFilesRequest): Promise<ListFilesRes
       size: file.size,
       lastModified: file.lastModified,
       isFolder: file.isFolder === true,
-      fileCount: file.fileCount
+      fileCount: file.fileCount,
+      fullPath: file.fullPath
     }));
     
     return { files };
