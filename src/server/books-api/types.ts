@@ -16,9 +16,7 @@
       thumbnail: string;
       smallThumbnail: string;
     };
-    language: string;
     previewLink: string;
-    infoLink: string;
   }
   
   export interface BookSearchResult {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Box, 
   TextField, 
@@ -18,11 +18,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent
+  SelectChangeEvent,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import SortIcon from '@mui/icons-material/Sort';
 import { searchBooks } from '../../../apis/books/client';
 import { Book } from '../../../server/books-api/types';
 import { BookApiProvider } from '../../../apis/books/types';
@@ -45,6 +48,8 @@ const SearchContainer = styled(Paper)(({ theme }) => ({
 const API_PROVIDER_STORAGE_KEY = 'books-app-api-provider';
 
 const BookSearch = () => {
+  const savedProvider = localStorage.getItem(API_PROVIDER_STORAGE_KEY) as BookApiProvider | undefined;
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { navigate, queryParams } = useRouter();
@@ -53,7 +58,9 @@ const BookSearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalItems, setTotalItems] = useState(0);
-  const [apiProvider, setApiProvider] = useState<BookApiProvider>('google');
+  const [apiProvider, setApiProvider] = useState<BookApiProvider | undefined>(savedProvider);
+  const [sortByDate, setSortByDate] = useState(true);
+
   
   // Memoize performSearch to avoid recreating it on every render
   const performSearch = useCallback(async (searchQuery: string) => {
@@ -88,21 +95,36 @@ const BookSearch = () => {
     }
   }, [apiProvider]);
   
+  // Sort books by published date
+  const sortedBooks = useMemo(() => {
+    if (!sortByDate) return books;
+    
+    return [...books].sort((a, b) => {
+      // Extract year from published date for sorting
+      const getYear = (date: string | undefined) => {
+        if (!date) return 0;
+        // Try to extract a 4-digit year from the date string
+        const yearMatch = date.match(/\b\d{4}\b/);
+        return yearMatch ? parseInt(yearMatch[0], 10) : 0;
+      };
+      
+      const yearA = getYear(a.publishedDate);
+      const yearB = getYear(b.publishedDate);
+      
+      // Sort in descending order (newest first)
+      return yearB - yearA;
+    });
+  }, [books, sortByDate]);
+  
   // Initialize query from URL and perform search if query exists
   useEffect(() => {
     const searchQuery = queryParams.q;
-    
-    // Load API provider from local storage
-    const savedProvider = localStorage.getItem(API_PROVIDER_STORAGE_KEY) as BookApiProvider | null;
-    if (savedProvider) {
-      setApiProvider(savedProvider);
-    }
     
     if (searchQuery) {
       setQuery(searchQuery);
       performSearch(searchQuery);
     }
-  }, [queryParams.q, performSearch]);
+  }, [queryParams.q]);
 
   const handleSearch = () => {
     // Update URL with search query
@@ -139,6 +161,10 @@ const BookSearch = () => {
     if (query.trim()) {
       performSearch(query);
     }
+  };
+
+  const handleSortToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSortByDate(event.target.checked);
   };
 
   return (
@@ -233,28 +259,57 @@ const BookSearch = () => {
             </Button>
           </Box>
           
-          <FormControl 
-            size={isMobile ? "small" : "medium"}
-            sx={{ 
-              marginTop: { xs: 2, sm: 1 },
-              minWidth: { xs: '100%', sm: 200 },
-              alignSelf: { xs: 'stretch', sm: 'flex-start' }
-            }}
-          >
-            <InputLabel id="api-provider-label">Search Provider</InputLabel>
-            <Select
-              labelId="api-provider-label"
-              id="api-provider-select"
-              value={apiProvider}
-              label="Search Provider"
-              onChange={handleApiProviderChange}
-              sx={{ borderRadius: 2 }}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            justifyContent: 'space-between',
+            gap: { xs: 1, sm: 2 }
+          }}>
+            <FormControl 
+              size={isMobile ? "small" : "medium"}
+              sx={{ 
+                minWidth: { xs: '100%', sm: 200 },
+                alignSelf: { xs: 'stretch', sm: 'flex-start' }
+              }}
             >
-              <MenuItem value="google">Google Books</MenuItem>
-              <MenuItem value="openlibrary">Open Library Books</MenuItem>
-              <MenuItem value="ai">AI Books Search</MenuItem>
-            </Select>
-          </FormControl>
+              <InputLabel id="api-provider-label">Search Provider</InputLabel>
+              <Select
+                labelId="api-provider-label"
+                id="api-provider-select"
+                value={apiProvider}
+                label="Search Provider"
+                onChange={handleApiProviderChange}
+                sx={{ borderRadius: 2 }}
+              >
+                <MenuItem value="google">Google Books</MenuItem>
+                <MenuItem value="openlibrary">Open Library Books</MenuItem>
+                <MenuItem value="ai">AI Books Search</MenuItem>
+              </Select>
+            </FormControl>
+            
+            {books.length > 0 && (
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={sortByDate}
+                    onChange={handleSortToggle}
+                    color="primary"
+                    size={isMobile ? "small" : "medium"}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <SortIcon fontSize="small" />
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                      Sort by date
+                    </Typography>
+                  </Box>
+                }
+                sx={{ ml: 0 }}
+              />
+            )}
+          </Box>
         </Box>
       </SearchContainer>
 
@@ -320,7 +375,7 @@ const BookSearch = () => {
           
           <Divider sx={{ mb: { xs: 2, sm: 3, md: 4 } }} />
           
-          <BookList books={books} onBookClick={handleBookClick} />
+          <BookList books={sortedBooks} onBookClick={handleBookClick} />
         </Box>
       )}
 
@@ -353,7 +408,6 @@ const BookSearch = () => {
           my: { xs: 4, sm: 6, md: 8 },
           gap: { xs: 1, sm: 2 }
         }}>
-          <SearchIcon sx={{ fontSize: { xs: 50, sm: 80 }, color: 'text.disabled', opacity: 0.5 }} />
           <Typography 
             variant={isMobile ? "subtitle1" : "h6"} 
             color="text.secondary"

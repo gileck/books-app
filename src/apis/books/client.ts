@@ -18,6 +18,8 @@ export const searchBooks = async (request: BookSearchRequest): Promise<CacheResu
 export const getBookById = async (request: BookDetailsRequest): Promise<CacheResult<BookDetailsResponse>> => {
   return apiClient.call<CacheResult<BookDetailsResponse>, BookDetailsRequest>(
     detailsApiName,
-    request
+    request,{
+      disableCache: true
+    }
   );
 };

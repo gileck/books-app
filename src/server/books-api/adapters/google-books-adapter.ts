@@ -13,7 +13,6 @@ interface GoogleBookVolumeInfo {
     thumbnail?: string;
     smallThumbnail?: string;
   };
-  language?: string;
   previewLink?: string;
   infoLink?: string;
 }
@@ -43,9 +42,7 @@ export const createGoogleBooksAdapter = (): BookAPIAdapter => {
         thumbnail: volumeInfo.imageLinks?.thumbnail || '',
         smallThumbnail: volumeInfo.imageLinks?.smallThumbnail || '',
       },
-      language: volumeInfo.language || 'en',
       previewLink: volumeInfo.previewLink || '',
-      infoLink: volumeInfo.infoLink || '',
     };
   };
 

@@ -7,11 +7,13 @@ import {
   IconButton,
   Divider,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Chip
 } from '@mui/material';
 import Image from 'next/image';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { Book } from '../../server/books-api/types';
 import { useState } from 'react';
 
@@ -190,12 +192,26 @@ export const BookList = ({ books, onBookClick, showFavoriteButtons = true }: Boo
                     {book.description || 'No description available.'}
                   </Typography>
                   
-                  {/* Bottom Section: Chapters and Reading Time */}
+                  {/* Bottom Section: Published Date */}
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center',
                     gap: { xs: 2, sm: 3 }
                   }}>
+                    <Chip
+                      icon={<CalendarTodayIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />}
+                      label={`Published: ${book.publishedDate || 'Unknown'}`}
+                      size="small"
+                      variant="outlined"
+                      sx={{ 
+                        height: { xs: 24, sm: 28 },
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                        '& .MuiChip-icon': { 
+                          color: 'text.secondary',
+                          ml: 0.5
+                        }
+                      }}
+                    />
                   </Box>
                 </Box>
               </Box>

@@ -135,9 +135,7 @@ export const createAIBooksAdapter = (): BookAPIAdapter => {
         thumbnail: aiBook.thumbnail || aiBook.image || '',
         smallThumbnail: aiBook.smallThumbnail || aiBook.small_image || '',
       },
-      language: aiBook.language || 'en',
       previewLink: aiBook.previewLink || aiBook.preview_link || '',
-      infoLink: aiBook.infoLink || aiBook.info_link || '',
     };
   };
 

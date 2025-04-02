@@ -5,7 +5,7 @@ export type BookApiProvider = 'google' | 'openlibrary' | 'ai';
 export type BookSearchRequest = {
   query: string;
   options?: SearchOptions;
-  provider?: BookApiProvider;
+  provider?: BookApiProvider | undefined;
 };
 
 export type BookSearchResponse = {

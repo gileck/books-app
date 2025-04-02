@@ -164,10 +164,10 @@ export const BookDetails = () => {
               <Typography variant="body2">{book.pageCount || 'Unknown'}</Typography>
             </Box>
             
-            <Box>
+            {/* <Box>
               <Typography variant="overline" display="block">Language</Typography>
               <Typography variant="body2">{book.language?.toUpperCase() || 'Unknown'}</Typography>
-            </Box>
+            </Box> */}
           </Box>
           
           {book.previewLink && (
@@ -179,17 +179,6 @@ export const BookDetails = () => {
               sx={{ mr: 2, mb: { xs: 2, md: 0 } }}
             >
               Preview
-            </Button>
-          )}
-          
-          {book.infoLink && (
-            <Button 
-              variant="outlined" 
-              href={book.infoLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              More Info
             </Button>
           )}
         </CardContent>
