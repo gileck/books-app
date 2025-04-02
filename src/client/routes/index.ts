@@ -11,12 +11,13 @@ import { createRoutes } from '../router';
 
 // Define routes
 export const routes = createRoutes({
-  '/': Home,
+  '/': BookSearch,
+  '/book-search': BookSearch,
+  '/home': Home,
   '/ai-chat': AIChat,
   '/settings': Settings,
   '/file-manager': FileManager,
   '/ai-monitoring': AIMonitoring,
-  '/book-search': BookSearch,
   '/book/:id': BookDetails,
   '/favorites': Favorites,
   '/not-found': NotFound,
