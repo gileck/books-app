@@ -15,6 +15,15 @@ const nextConfig: NextConfig = withPWA({
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    domains: ['books.google.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
   webpack(config) {
     // Enable WebAssembly
     config.experiments = {

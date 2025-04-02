@@ -9,6 +9,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
+import Image from 'next/image';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Book } from '../../server/books-api/types';
@@ -33,21 +34,7 @@ export const BookList = ({ books, onBookClick, showFavoriteButtons = true }: Boo
     }));
   };
 
-  // Function to estimate reading time based on page count
-  const estimateReadingTime = (pageCount: number): number => {
-    if (!pageCount) return 0;
-    // Assuming average reading speed of 2 minutes per page
-    return Math.round(pageCount / 15);
-  };
-
-  // Function to count chapters (using categories as a proxy since we don't have chapter info)
-  const getChapterCount = (book: Book): number => {
-    if (book.categories && book.categories.length > 0) {
-      return book.categories.length + Math.floor(Math.random() * 10) + 5; // Simulating chapter count
-    }
-    return Math.floor(Math.random() * 15) + 5; // Default random chapter count
-  };
-
+  
   return (
     <Paper elevation={0} sx={{ borderRadius: 2, overflow: 'hidden', pl: 0 }}>
       <List disablePadding>
@@ -82,17 +69,19 @@ export const BookList = ({ books, onBookClick, showFavoriteButtons = true }: Boo
                   alignItems: 'center',
                   overflow: 'hidden',
                   borderRadius: 1,
-                  boxShadow: 2
+                  boxShadow: 2,
+                  position: 'relative'
                 }}>
-                  <img 
+                  <Image 
                     src={book.imageLinks?.thumbnail || '/placeholder-book.png'} 
                     alt={book.title}
+                    fill
+                    sizes="(max-width: 600px) 100px, 120px"
                     style={{ 
-                      width: '100%', 
-                      height: '100%', 
                       objectFit: 'cover'
                     }}
-                  /> 
+                    priority={index < 3}
+                  />
                 </Box>
                 
                 {/* Book Details */}
