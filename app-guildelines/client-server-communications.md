@@ -6,9 +6,9 @@ This project uses a simplified client-server communication pattern with a single
 
 ```
 /src
-  /api
+  /apis
     /apis.ts           - Registry of all API handlers (imports directly from server.ts files)
-    /processApiCall.ts - Central processing logic with caching
+    /processApiCall.ts - Central processing logic with caching 
     /types.ts          - Shared API types
     /<domain>
       /types.ts        - Shared types for this domain
@@ -22,7 +22,7 @@ This project uses a simplified client-server communication pattern with a single
 
 ## Creating a New API Endpoint
 
-1. **Define Shared Types** (`/src/api/<domain>/types.ts`):
+1. **Define Shared Types** (`/src/apis/<domain>/types.ts`):
    - Define request and response types
    - Keep types simple and focused on the specific domain
    - **IMPORTANT: These types MUST be used consistently across client.ts and server.ts**
@@ -42,7 +42,7 @@ This project uses a simplified client-server communication pattern with a single
      };
      ```
 
-2. **Implement Server Logic** (`/src/api/<domain>/server.ts`):
+2. **Implement Server Logic** (`/src/apis/<domain>/server.ts`):
    - Create a `process` function that handles the request and returns a response
    - **IMPORTANT: ALL business logic MUST be implemented here**
    - Handle all business logic, validation, error cases, and external API calls here
@@ -84,7 +84,7 @@ This project uses a simplified client-server communication pattern with a single
      };
      ```
 
-3. **Create Client Function** (`/src/api/<domain>/client.ts`):
+3. **Create Client Function** (`/src/apis/<domain>/client.ts`):
    - Implement a function that calls the API using the apiClient.call method
    - **IMPORTANT: This is the ONLY place that should call apiClient.call with this API name**
    - **MUST use the exact same types for input parameters and return values as server.ts**
@@ -107,7 +107,7 @@ This project uses a simplified client-server communication pattern with a single
      };
      ```
 
-4. **Create Index File** (`/src/api/<domain>/index.ts`):
+4. **Create Index File** (`/src/apis/<domain>/index.ts`):
    - Export ONLY the API name and types (not process or client functions)
    - **IMPORTANT: Do NOT export process or client functions to prevent bundling server code with client code**
    - Example:
@@ -119,7 +119,7 @@ This project uses a simplified client-server communication pattern with a single
      export const name = "chat";
      ```
 
-5. **Register the API in apis.ts** (`/src/api/apis.ts`):
+5. **Register the API in apis.ts** (`/src/apis/apis.ts`):
    - Import the server module directly and add it to the apiHandlers object
    - **IMPORTANT: Import directly from server.ts, NOT from index.ts**
    - **IMPORTANT: The key in the apiHandlers object MUST match the name exported from the server.ts**
