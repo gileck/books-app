@@ -5,6 +5,7 @@ import { useRouter } from '../../router';
 import { getBookById } from '../../../apis/books/client';
 import { Book } from '../../../server/books-api/types';
 import { FavoriteButton } from '../../components/FavoriteButton';
+import { BookAiActionTrigger } from './components/BookAiActionTrigger';
 
 export const BookDetails = () => {
   const { routeParams, navigate } = useRouter();
@@ -193,6 +194,8 @@ export const BookDetails = () => {
       <Typography variant="body1" paragraph>
         {book.description || 'No description available for this book.'}
       </Typography>
+      
+      <BookAiActionTrigger bookId={book.id} />
     </Box>
   );
 };

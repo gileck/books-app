@@ -4,7 +4,7 @@
  * Delegates model-specific logic to the individual adapters
  */
 
-import { AIModelDefinition, getModelById } from './models';
+import { AIModelDefinition, OPENAI_MODELS, getModelById } from './models';
 import { adapters } from './adapters';
 import { AIModel, AIModelAdapterResponse, AIModelBaseAdapter, AIModelCostEstimate, Usage } from './types';
 import { countTokens } from './utils/tokenizer';
@@ -12,12 +12,13 @@ import { getPricePer1K } from './price';
 import { addAIUsageRecord } from '../ai-usage-monitoring';
 
 
+const DEFAULT_MODEL = OPENAI_MODELS[0].id
 export class AIModelAdapter implements AIModelBaseAdapter {
   modelId: string;
   modelDefinition: AIModelDefinition;
   modelAdapter: AIModel;
   
-  constructor(modelId: string) {
+  constructor(modelId: string = DEFAULT_MODEL) {
     this.modelId = modelId;
     this.modelDefinition = getModelById(modelId);
     this.modelAdapter = adapters[this.modelDefinition.provider]();
