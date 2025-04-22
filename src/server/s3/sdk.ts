@@ -45,6 +45,7 @@ export interface S3File {
   url?: string;
   isFolder?: boolean;
   fileCount?: number;
+  fullPath?: string;
 }
 
 export interface S3UploadParams {
@@ -239,7 +240,8 @@ export const listFiles = async (
           size: folderSizes[simpleFolderName] || 0,
           lastModified: new Date(),
           isFolder: true,
-          fileCount: folderCounts[simpleFolderName] || 0
+          fileCount: folderCounts[simpleFolderName] || 0,
+          fullPath: folderKey
         });
       }
     }

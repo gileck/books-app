@@ -9,7 +9,7 @@ import {
   GetAIUsageSummaryRequest, 
   GetAIUsageSummaryResponse 
 } from './types';
-import { allUsageApiName, summaryApiName } from './server';
+import { all, summary } from './server';
 import type { CacheResult } from '@/server/cache/types';
 
 /**
@@ -19,7 +19,7 @@ export const getAllUsage = async (
   params: GetAllAIUsageRequest = {}
 ): Promise<CacheResult<GetAllAIUsageResponse>> => {
   return apiClient.call<CacheResult<GetAllAIUsageResponse>, GetAllAIUsageRequest>(
-    allUsageApiName,
+    all,
     params,
     {
       disableCache: true
@@ -32,7 +32,7 @@ export const getAllUsage = async (
  */
 export const getSummary = async (): Promise<CacheResult<GetAIUsageSummaryResponse>> => {
   return apiClient.call<CacheResult<GetAIUsageSummaryResponse>, GetAIUsageSummaryRequest>(
-    summaryApiName,
+    summary,
     {},
     {
       disableCache: true

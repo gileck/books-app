@@ -12,7 +12,7 @@ export async function listFiles(request: ListFilesRequest): Promise<ListFilesRes
       lastModified: file.lastModified,
       isFolder: file.isFolder === true,
       fileCount: file.fileCount,
-      fullPath: file.fullPath
+      fullPath: file.fullPath || ''
     }));
     
     return { files };

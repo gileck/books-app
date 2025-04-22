@@ -3,6 +3,7 @@ import * as chat from "./chat/server";
 import * as clearCache from "./settings/clearCache/server";
 import * as fileManagement from "./fileManagement/server";
 import * as aiUsage from "./monitoring/aiUsage/server";
+import * as books from "./books/server";
 
 
 export const apiHandlers: ApiHandlers = {
@@ -11,4 +12,6 @@ export const apiHandlers: ApiHandlers = {
   [fileManagement.name]: { process: fileManagement.process as (params: unknown) => Promise<unknown> },
   [aiUsage.all]: { process: aiUsage.getAllUsage as (params: unknown) => Promise<unknown> },
   [aiUsage.summary]: { process: aiUsage.getSummary as (params: unknown) => Promise<unknown> },
+  [books.searchApiName]: { process: books.searchBooks as (params: unknown) => Promise<unknown> },
+  [books.detailsApiName]: { process: books.getBookById as (params: unknown) => Promise<unknown> },
 };
