@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography, Alert, CircularProgress, Stack } from '@mui/material';
 import { AiActionType } from '../../../../services/AiActions/types';
 import { BookAiActionResponse } from '../../../../apis/aiBookActions/types';
-import { actionDefinitions } from '../../../../services/AiActions/action-definitions';
+import { actionDefinitions } from '../../../../services/AiActions';
 import { RegenerateButton } from './RegenerateButton';
 
 interface BookAiActionResultRendererProps {

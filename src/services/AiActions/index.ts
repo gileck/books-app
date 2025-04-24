@@ -3,6 +3,10 @@ import { booksAPI } from '@/server/books-api';
 import { AIModelAdapter } from '@/server/ai/baseModelAdapter';
 import { actionHandlers } from './book-actions';
 
+// Re-export action types and definitions
+export { actionDefinitions } from './book-actions';
+export type { AiActionType } from './book-actions';
+
 /**
  * Generic handler for AI actions
  * Routes the request to the appropriate handler based on actionType

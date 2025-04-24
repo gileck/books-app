@@ -3,7 +3,7 @@ import { Button, Box, Stack } from '@mui/material';
 import { AiActionType } from '../../../../services/AiActions/types';
 import { BookAiActionResponse } from '../../../../apis/aiBookActions/types';
 import { BookAiActionResultRenderer } from './BookAiActionResultRenderer';
-import { actionDefinitions } from '../../../../services/AiActions/action-definitions';
+import { actionDefinitions } from '../../../../services/AiActions';
 
 interface BookAiActionTriggerProps {
   bookId: string;
