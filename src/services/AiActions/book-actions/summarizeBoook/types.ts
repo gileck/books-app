@@ -10,4 +10,6 @@ export interface BookSummaryAIResponse {
 // Alias for backwards compatibility and clarity
 export type BookSummaryResult = BookSummaryAIResponse;
 
-export type BookSummaryResponse = BookAiActionResponse & BookSummaryResult;
+export interface BookSummaryResponse extends BookAiActionResponse {
+  result: BookSummaryResult | null;
+}

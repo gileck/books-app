@@ -5,7 +5,8 @@ import { useRouter } from '../../router';
 import { getBookById } from '../../../apis/books/client';
 import { Book } from '../../../server/books-api/types';
 import { FavoriteButton } from '../../components/FavoriteButton';
-import { BookAiActionTrigger } from './components/BookAiActionTrigger';
+import { BookAiActionTrigger } from '../../components/Book/AiActions';
+import { performBookAiAction } from '../../../apis/aiBookActions/client';
 
 export const BookDetails = () => {
   const { routeParams, navigate } = useRouter();
@@ -195,7 +196,16 @@ export const BookDetails = () => {
         {book.description || 'No description available for this book.'}
       </Typography>
       
-      <BookAiActionTrigger bookId={book.id} />
+      <BookAiActionTrigger 
+        bookId={book.id} 
+        onAction={async (bookId, actionType) => {
+          const response = await performBookAiAction({ bookId, actionType });
+          if (!response.data || response.data.error) {
+            throw new Error(response.data?.error || 'Failed to perform AI action');
+          }
+          return response.data;
+        }}
+      />
     </Box>
   );
 };

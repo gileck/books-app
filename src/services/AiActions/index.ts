@@ -1,26 +1,13 @@
-import { AiActionRequest, AiActionResponse, AiActionType } from './types';
-import { summarizeBook } from './book-actions/summarizeBoook/summarizeBook';
-
-// Map of action types to their handler functions
-const actionHandlers: Record<AiActionType, (request: AiActionRequest) => Promise<AiActionResponse>> = {
-  summary: summarizeBook,
-  qa: async () => ({ 
-    result: { error: 'Not implemented' }, 
-    cost: { totalCost: 0 },
-    error: 'QA action not implemented yet'
-  }),
-  themes: async () => ({ 
-    result: { error: 'Not implemented' }, 
-    cost: { totalCost: 0 },
-    error: 'Themes action not implemented yet'
-  }),
-};
+import { AiActionRequest, AiActionResponse } from './types';
+import { booksAPI } from '@/server/books-api';
+import { AIModelAdapter } from '@/server/ai/baseModelAdapter';
+import { actionHandlers } from './book-actions';
 
 /**
  * Generic handler for AI actions
  * Routes the request to the appropriate handler based on actionType
  */
-export const handleAiAction = async (request: AiActionRequest): Promise<AiActionResponse> => {
+export const handleAiAction = async <T>(request: AiActionRequest): Promise<AiActionResponse<T>> => {
   try {
     // Validate request
     if (!request.actionType) {
@@ -39,19 +26,39 @@ export const handleAiAction = async (request: AiActionRequest): Promise<AiAction
       };
     }
 
-    // Get the handler for the requested action type
-    const handler = actionHandlers[request.actionType];
-    
-    if (!handler) {
+    const bookApiAdapter = booksAPI();
+    const book = await bookApiAdapter.getBookById(request.bookId);
+    if (!book) {
       return {
         result: null,
         cost: { totalCost: 0 },
-        error: `Unsupported action type: ${request.actionType}`
+        error: 'Book not found'
+      };
+    }
+    const modelAdapter = new AIModelAdapter()
+
+    // Get the handler for the requested action type
+    const actionDefinition = actionHandlers[request.actionType];
+
+    const prompt = actionDefinition.prompt(book);
+
+    const aiResponse = await modelAdapter.processPromptToJSON<T>(
+      prompt,
+      request.actionType
+    );
+
+    if (!aiResponse) {
+      return {
+        result: null,
+        cost: { totalCost: 0 },
+        error: 'No response from AI'
       };
     }
 
-    // Execute the handler
-    return await handler(request);
+    return {
+      result: aiResponse.result,
+      cost: aiResponse.cost,
+    }
   } catch (error) {
     return {
       result: null,

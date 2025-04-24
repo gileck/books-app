@@ -1,9 +1,10 @@
 import React from 'react';
 import { Box, Typography, Alert, CircularProgress } from '@mui/material';
 import { AiActionType } from '../../../../services/AiActions/types';
-import { BookSummaryRenderer } from './BookSummaryRenderer';
 import { BookAiActionResponse } from '../../../../apis/aiBookActions/types';
-import { BookSummaryResult } from '../../../../services/AiActions/book-actions/summarizeBoook/types';
+import { actionDefinitions } from '../../../../services/AiActions/action-definitions';
+
+
 
 interface BookAiActionResultRendererProps {
   actionType: AiActionType;
@@ -59,37 +60,24 @@ export const BookAiActionResultRenderer: React.FC<BookAiActionResultRendererProp
     </Box>
   ) : null;
 
-  // Render the appropriate component based on action type
-  switch (actionType) {
-    case 'summary':
-      return (
-        <Box>
-          {costInfo}
-          <BookSummaryRenderer result={result.result as BookSummaryResult} />
-        </Box>
-      );
-    case 'qa':
-      // For future implementation
-      return (
-        <Box>
-          {costInfo}
-          <Typography variant="body2" color="text.secondary">Q&A rendering not implemented.</Typography>
-        </Box>
-      );
-    case 'themes':
-      // For future implementation
-      return (
-        <Box>
-          {costInfo}
-          <Typography variant="body2" color="text.secondary">Themes rendering not implemented.</Typography>
-        </Box>
-      );
-    default:
-      return (
-        <Box>
-          {costInfo}
-          <Typography variant="body2" color="text.secondary">Unknown action type.</Typography>
-        </Box>
-      );
+  const actionDefinition = actionDefinitions[actionType];
+  if (!actionDefinition) {
+    return (
+      <Box>
+        {costInfo}
+        <Typography variant="body2" color="text.secondary">Unknown action type.</Typography>
+      </Box>
+    );
   }
-};
+
+  
+
+  const Renderer = actionDefinition.renderer;
+  return (
+    <Box>
+      {costInfo}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <Renderer result={result.result as any} />
+    </Box>
+  );
+}; 

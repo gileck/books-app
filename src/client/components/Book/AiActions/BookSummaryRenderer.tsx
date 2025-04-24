@@ -84,4 +84,4 @@ export const BookSummaryRenderer: React.FC<BookSummaryRendererProps> = ({ result
       </Box>
     </Paper>
   );
-};
+}; 
