@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Box, CircularProgress, Stack } from '@mui/material';
+import { Button, Box, Stack } from '@mui/material';
 import { AiActionType } from '../../../../services/AiActions/types';
 import { BookAiActionResponse } from '../../../../apis/aiBookActions/types';
 import { BookAiActionResultRenderer } from './BookAiActionResultRenderer';
@@ -7,7 +7,7 @@ import { actionDefinitions } from '../../../../services/AiActions/action-definit
 
 interface BookAiActionTriggerProps {
   bookId: string;
-  onAction: (bookId: string, actionType: AiActionType) => Promise<BookAiActionResponse>;
+  onAction: (bookId: string, actionType: AiActionType, bypassCache?: boolean) => Promise<BookAiActionResponse>;
 }
 
 interface ActionState {
@@ -33,15 +33,17 @@ export const BookAiActionTrigger: React.FC<BookAiActionTriggerProps> = ({
       [type]: { loading: false, error: null, result: null }
     }), {} as ActionStates)
   );
+  const [activeActionType, setActiveActionType] = useState<AiActionType | null>(null);
 
-  const handleAction = async (actionType: AiActionType) => {
+  const handleAction = async (actionType: AiActionType, bypassCache = false) => {
     try {
+      setActiveActionType(actionType);
       setActionStates(prev => ({
         ...prev,
         [actionType]: { ...prev[actionType], loading: true, error: null }
       }));
 
-      const response = await onAction(bookId, actionType);
+      const response = await onAction(bookId, actionType, bypassCache);
       
       setActionStates(prev => ({
         ...prev,
@@ -59,6 +61,10 @@ export const BookAiActionTrigger: React.FC<BookAiActionTriggerProps> = ({
     }
   };
 
+  const handleRegenerate = async (bookId: string, actionType: AiActionType, bypassCache: boolean) => {
+    await handleAction(actionType, bypassCache);
+  };
+
   return (
     <Box>
       <Stack direction="row" spacing={2} mb={2}>
@@ -68,26 +74,25 @@ export const BookAiActionTrigger: React.FC<BookAiActionTriggerProps> = ({
             variant="outlined"
             onClick={() => handleAction(type as AiActionType)}
             disabled={actionStates[type as AiActionType].loading}
-            startIcon={actionStates[type as AiActionType].loading ? <CircularProgress size={20} /> : <Icon />}
+            startIcon={<Icon />}
             size="small"
           >
-            {actionStates[type as AiActionType].loading ? 'Processing...' : label}
+            {label}
           </Button>
         ))}
       </Stack>
 
-      {/* Display results for each action */}
-      <Stack spacing={2}>
-        {Object.entries(actionDefinitions).map(([type]) => (
-          <BookAiActionResultRenderer
-            key={type}
-            actionType={type as AiActionType}
-            result={actionStates[type as AiActionType].result}
-            loading={actionStates[type as AiActionType].loading}
-            error={actionStates[type as AiActionType].error}
-          />
-        ))}
-      </Stack>
+      {/* Display only the active action result */}
+      {activeActionType && (
+        <BookAiActionResultRenderer
+          actionType={activeActionType}
+          result={actionStates[activeActionType].result}
+          loading={actionStates[activeActionType].loading}
+          error={actionStates[activeActionType].error}
+          bookId={bookId}
+          onRegenerate={handleRegenerate}
+        />
+      )}
     </Box>
   );
 }; 

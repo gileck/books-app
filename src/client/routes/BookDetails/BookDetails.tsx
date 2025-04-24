@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography, Card, CardMedia, CardContent, Chip, CircularProgress, Alert, Button, Divider } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SearchIcon from '@mui/icons-material/Search';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import { useRouter } from '../../router';
 import { getBookById } from '../../../apis/books/client';
 import { Book } from '../../../server/books-api/types';
@@ -47,6 +49,22 @@ export const BookDetails = () => {
 
   const handleBackToSearch = () => {
     navigate('/book-search');
+  };
+
+  const handleSearchPdf = () => {
+    if (book?.title) {
+      const query = `doctype:pdf ${book.title}`;
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleSearchAmazon = () => {
+    if (book?.title) {
+      const query = `${book.title} ${book.authors?.[0] || ''}`.trim();
+      const url = `https://www.amazon.com/s?k=${encodeURIComponent(query)}`;
+      window.open(url, '_blank');
+    }
   };
 
   if (loading) {
@@ -172,17 +190,36 @@ export const BookDetails = () => {
             </Box> */}
           </Box>
           
-          {book.previewLink && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {book.previewLink && (
+              <Button 
+                variant="outlined" 
+                href={book.previewLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Preview
+              </Button>
+            )}
+            
             <Button 
               variant="outlined" 
-              href={book.previewLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              sx={{ mr: 2, mb: { xs: 2, md: 0 } }}
+              color="secondary" 
+              startIcon={<SearchIcon />}
+              onClick={handleSearchPdf}
             >
-              Preview
+              Search PDF
             </Button>
-          )}
+
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              startIcon={<StorefrontIcon />}
+              onClick={handleSearchAmazon}
+            >
+              Search Amazon
+            </Button>
+          </Box>
         </CardContent>
       </Card>
       
@@ -198,8 +235,11 @@ export const BookDetails = () => {
       
       <BookAiActionTrigger 
         bookId={book.id} 
-        onAction={async (bookId, actionType) => {
-          const response = await performBookAiAction({ bookId, actionType });
+        onAction={async (bookId, actionType, bypassCache) => {
+          const response = await performBookAiAction(
+            { bookId, actionType },
+            { bypassCache: bypassCache }
+          );
           if (!response.data || response.data.error) {
             throw new Error(response.data?.error || 'Failed to perform AI action');
           }

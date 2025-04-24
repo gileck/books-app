@@ -1,16 +1,17 @@
 import React from 'react';
-import { Box, Typography, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, Alert, CircularProgress, Stack } from '@mui/material';
 import { AiActionType } from '../../../../services/AiActions/types';
 import { BookAiActionResponse } from '../../../../apis/aiBookActions/types';
 import { actionDefinitions } from '../../../../services/AiActions/action-definitions';
-
-
+import { RegenerateButton } from './RegenerateButton';
 
 interface BookAiActionResultRendererProps {
   actionType: AiActionType;
   result: BookAiActionResponse | null;
   loading: boolean;
   error: string | null;
+  bookId: string;
+  onRegenerate: (bookId: string, actionType: AiActionType, bypassCache: boolean) => Promise<void>;
 }
 
 /**
@@ -21,7 +22,9 @@ export const BookAiActionResultRenderer: React.FC<BookAiActionResultRendererProp
   actionType,
   result,
   loading,
-  error
+  error,
+  bookId,
+  onRegenerate
 }) => {
   if (loading) {
     return (
@@ -53,11 +56,16 @@ export const BookAiActionResultRenderer: React.FC<BookAiActionResultRendererProp
 
   // Generic AI cost info
   const costInfo = result.cost?.totalCost !== undefined ? (
-    <Box sx={{ mb: 2 }}>
+    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
       <Typography variant="caption" color="text.secondary">
         AI Cost: ${result.cost.totalCost.toFixed(4)}
       </Typography>
-    </Box>
+      <RegenerateButton
+        actionType={actionType}
+        bookId={bookId}
+        onRegenerate={onRegenerate}
+      />
+    </Stack>
   ) : null;
 
   const actionDefinition = actionDefinitions[actionType];
@@ -69,8 +77,6 @@ export const BookAiActionResultRenderer: React.FC<BookAiActionResultRendererProp
       </Box>
     );
   }
-
-  
 
   const Renderer = actionDefinition.renderer;
   return (

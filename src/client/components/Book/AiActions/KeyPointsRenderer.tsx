@@ -1,5 +1,17 @@
-import React from 'react';
-import { Box, Typography, Paper, Divider, List, ListItem, ListItemText } from '@mui/material';
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Paper, 
+  Divider, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  IconButton,
+  Collapse
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { KeyPointsAIResponse } from '../../../../services/AiActions/book-actions/keypoints/types';
 
 interface KeyPointsRendererProps {
@@ -7,9 +19,11 @@ interface KeyPointsRendererProps {
 }
 
 /**
- * Renders the result of a book key points AI action
+ * Renders the result of a book key points AI action with expandable descriptions
  */
 export const KeyPointsRenderer: React.FC<KeyPointsRendererProps> = ({ result }) => {
+  const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
+
   if (!result || !result.keyPoints || result.keyPoints.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
@@ -17,6 +31,13 @@ export const KeyPointsRenderer: React.FC<KeyPointsRendererProps> = ({ result }) 
       </Box>
     );
   }
+
+  const toggleExpand = (index: number) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   return (
     <Paper elevation={0} sx={{ p: { xs: 0, sm: 3 }, mt: 2, bgcolor: 'background.default' }}>
@@ -26,17 +47,46 @@ export const KeyPointsRenderer: React.FC<KeyPointsRendererProps> = ({ result }) 
       <Divider sx={{ mb: 2 }} />
       
       {/* Key points list */}
-      <List dense>
+      <List>
         {result.keyPoints.map((point, index) => (
-          <ListItem key={index}>
-            <ListItemText 
-              primary={point}
-              primaryTypographyProps={{
-                variant: 'body1',
-                sx: { fontWeight: 'medium' }
+          <React.Fragment key={index}>
+            <ListItem 
+              alignItems="flex-start"
+              secondaryAction={
+                <IconButton 
+                  edge="end" 
+                  onClick={() => toggleExpand(index)}
+                  aria-expanded={expandedItems[index]}
+                  aria-label="show more"
+                >
+                  {expandedItems[index] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              }
+              sx={{
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'action.hover'
+                }
               }}
-            />
-          </ListItem>
+              onClick={() => toggleExpand(index)}
+            >
+              <ListItemText
+                primary={
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
+                    {point.emoji} {point.title}
+                  </Typography>
+                }
+              />
+            </ListItem>
+            <Collapse in={expandedItems[index]} timeout="auto" unmountOnExit>
+              <Box sx={{ px: 3, pb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {point.description}
+                </Typography>
+              </Box>
+            </Collapse>
+            {index < result.keyPoints.length - 1 && <Divider component="li" />}
+          </React.Fragment>
         ))}
       </List>
       
